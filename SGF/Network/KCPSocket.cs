@@ -110,7 +110,7 @@ namespace Network
         {
             if (Application.isPlaying == false)
             {
-                this.Log("OnEditorPlayModeChanged()");
+                //this.Log("OnEditorPlayModeChanged()");
                 UnityEditor.EditorApplication.playmodeStateChanged -= OnEditorPlayModeChanged;
                 Dispose();
             }
@@ -143,7 +143,7 @@ namespace Network
                 }
                 catch (Exception e)
                 {
-                    this.LogWarning("Close() " + e.Message + e.StackTrace);
+                    Debug.LogWarning("Close() " + e.Message + e.StackTrace);
                 }
 
                 m_SystemSocket.Close();
@@ -244,6 +244,7 @@ namespace Network
 
         public bool SendTo(string message, IPEndPoint remotePoint)
         {
+            Debug.Log("发送消息  message: "+ message+ " 目标： "+ remotePoint);
             byte[] buffer = Encoding.UTF8.GetBytes(message);
             return SendTo(buffer, buffer.Length, remotePoint);
         }
@@ -327,26 +328,30 @@ namespace Network
 
         private void Thread_Recv()
         {
-            this.Log("Thread_Recv() Begin ......");
+            //this.Log("Thread_Recv() Begin ......");
 
             while (m_IsRunning)
             {
                 try
                 {
+                    Thread.Sleep(10);
                     DoReceive();
                 }
                 catch (Exception e)
                 {
-                    this.LogError("Thread_Recv() " + e.Message + "\n" + e.StackTrace);
+                    Debug.LogError("Thread_Recv() " + e.Message + "\n" + e.StackTrace);
                     Thread.Sleep(10);
                 }
             }
 
-            this.Log("Thread_Recv() End!");
+            Debug.Log("Thread_Recv() End!");
         }
 
         private void DoReceive()
         {
+
+            //Debug.Log("m_SystemSocket.Available   " + m_SystemSocket.Available);
+            //Thread.Sleep(TimeSpan.FromMilliseconds(20));
             if (m_SystemSocket.Available <= 0)
             {
                 return;
@@ -386,6 +391,7 @@ namespace Network
 
         public IPEndPoint RemotePoint { get { return m_RemotePoint; } }
 
+        private kcp_output _outPut;
 
 
         public KCPProxy(uint key, IPEndPoint remotePoint, Socket socket,string type)
@@ -398,8 +404,28 @@ namespace Network
             //m_Kcp.WndSize(128, 128);
             System.IntPtr _netP = Marshal.StringToHGlobalAnsi(type);
             m_Kcp = KCP.Create(key, _netP);
+
+            //Debug.Log("KCP 创建==== m_Kcp: " + m_Kcp);
+
+            _outPut = new kcp_output(KcpOutput);
+
             KCP.Nodelay(m_Kcp,1, 10, 2, 1);
             KCP.Wndsize(m_Kcp, 128, 128);
+            KCP.Setoutput(m_Kcp, _outPut);
+        }
+
+
+        public int KcpOutput(IntPtr buf, int len, IntPtr kcp, IntPtr user)
+        {
+            //string data = Marshal.PtrToStringAnsi(buf);
+
+            //Debug.Log("KCPOutPut -------------> data : " + data + "  len: " + len + " kcp: " + kcp + " user: " + user);
+
+
+            //string result = Marshal.PtrToStringAnsi((IntPtr)buf);
+
+            //Debug.Log("KCPOutPut -------------> result : " + result + "  len: " + len + " kcp: " + kcp + " user: " + user);
+            return 0;
         }
 
         public void Dispose()
@@ -516,13 +542,5 @@ namespace Network
 
         //---------------------------------------------
 
-    }
-
-
-    class KcpNet {
-        public string name;
-        public KcpNet(string _name) {
-            this.name = _name;
-        }
     }
 }

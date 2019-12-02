@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using Network;
 using UnityEngine;
-
+using System.Runtime.InteropServices;
 
 namespace Assets.UnityTest.KCPTest
 {
@@ -16,32 +16,40 @@ namespace Assets.UnityTest.KCPTest
         private int m_MsgId = 0;
         private IPEndPoint m_RemotePoint;
 
-        public void Init(string name, int localPort, int remotePort,string netType)
+        public void Init(string name, int localPort, int remotePort,string netType,uint kcpKey)
         {
-            Debug.Log("KCPPlayer  Init-------------------------");
+
+            //string str = "aa";
+
+            //System.IntPtr init = Marshal.StringToHGlobalAnsi(str);
+
+            //string ss = Marshal.PtrToStringAnsi(init);
+
+
+            //Debug.Log("测试指针转字符串 -------------------------"+ ss);
             m_Name = name;
             LOG_TAG = "KCPPlayer[" + m_Name + "]";
 
             IPAddress ipa = IPAddress.Parse(IPManager.GetIP(ADDRESSFAM.IPv4));
             m_RemotePoint = new IPEndPoint(ipa, remotePort);
 
-            m_Socket = new KCPSocket(localPort, 1, netType, AddressFamily.InterNetwork);
+            m_Socket = new KCPSocket(localPort, kcpKey, netType, AddressFamily.InterNetwork);
             m_Socket.AddReceiveListener(KCPSocket.IPEP_Any, OnReceiveAny);
             m_Socket.AddReceiveListener(m_RemotePoint, OnReceive);
 
-            this.Log("创建KCP测试端 Init() name:{0}, localPort:{1}, remotePort:{2}",name, localPort, remotePort );
+            Debug.Log("创建KCP测试端  Init  ----------------- ");
         }
 
         private void OnReceiveAny(byte[] buffer, int size, IPEndPoint remotePoint)
         {
             string str = Encoding.UTF8.GetString(buffer, 0, size);
-            this.Log("OnReceiveAny() " + remotePoint + ":" + str);
+            Debug.Log("OnReceiveAny() " + remotePoint + ":" + str);
         }
 
         private void OnReceive(byte[] buffer, int size, IPEndPoint remotePoint)
         {
             string str = Encoding.UTF8.GetString(buffer, 0, size);
-            this.Log("OnReceive() " + remotePoint + ":" + str);
+            Debug.Log("OnReceive() " + remotePoint + ":" + str);
         }
 
         public void OnUpdate()
@@ -52,12 +60,12 @@ namespace Assets.UnityTest.KCPTest
             }
         }
 
-        public void SendMessage()
+        public void SendMessage(string message)
         {
             if (m_Socket != null)
             {
                 m_MsgId++;
-                m_Socket.SendTo(m_Name + "_" + "Message" + m_MsgId, m_RemotePoint);
+                m_Socket.SendTo(message, m_RemotePoint);
             }
         }
     }

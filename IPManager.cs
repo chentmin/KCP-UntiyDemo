@@ -32,7 +32,7 @@ public class IPManager
                         if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
                         {
                             output = ip.Address.ToString();
-                            Debug.Log("啊" + output);
+                            //Debug.Log("啊" + output);
                         }
                     }
 
